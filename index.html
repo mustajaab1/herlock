@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        vault: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                            accent: '#6366f1',
+                            danger: '#ef4444',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PDF Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 h-screen w-screen overflow-hidden text-gray-800 transition-colors duration-500 font-sans" id="body-bg">
+
+    <!-- DISGUISE MODE: CALCULATOR -->
+    <div id="disguise-mode" class="h-full flex flex-col items-center justify-center relative z-10 transition-opacity duration-500">
+        <div class="bg-white p-6 rounded-3xl shadow-xl w-80">
+            <div class="mb-6 flex justify-between items-center">
+                <span class="text-sm font-medium text-gray-400">Calculator</span>
+                <button id="secret-trigger" class="w-4 h-4 rounded-full bg-transparent focus:outline-none"></button>
+            </div>
+            
+            <div class="bg-gray-100 rounded-xl p-4 mb-4 text-right">
+                <div id="calc-display" class="text-4xl font-semibold text-gray-800 tracking-wider">0</div>
+            </div>
+            
+            <div class="grid grid-cols-4 gap-3">
+                <!-- Row 1 -->
+                <button class="calc-btn text-gray-500 bg-gray-50 hover:bg-gray-100" data-val="C">C</button>
+                <button class="calc-btn text-gray-500 bg-gray-50 hover:bg-gray-100" data-val="±">±</button>
+                <button class="calc-btn text-gray-500 bg-gray-50 hover:bg-gray-100" data-val="%">%</button>
+                <button class="calc-btn text-indigo-500 bg-indigo-50 hover:bg-indigo-100 font-medium" data-val="÷">÷</button>
+                
+                <!-- Row 2 -->
+                <button class="calc-btn text-gray-700 bg-white shadow-sm hover:bg-gray-50" data-val="7">7</button>
+                <button class="calc-btn text-gray-700 bg-white shadow-sm hover:bg-gray-50" data-val="8">8</button>
+                <button class="calc-btn text-gray-700 bg-white shadow-sm hover:bg-gray-50" data-val="9">9</button>
+                <button class="calc-btn text-indigo-500 bg-indigo-50 hover:bg-indigo-100 font-medium" data-val="×">×</button>
+                
+                <!-- Row 3 -->
+                <button class="calc-btn text-gray-700 bg-white shadow-sm hover:bg-gray-50" data-val="4">4</button>
+                <button class="calc-btn text-gray-700 bg-white shadow-sm hover:bg-gray-50" data-val="5">5</button>
+                <button class="calc-btn text-gray-700 bg-white shadow-sm hover:bg-gray-50" data-val="6">6</button>
+                <button class="calc-btn text-indigo-500 bg-indigo-50 hover:bg-indigo-100 font-medium" data-val="-">-</button>
+                
+                <!-- Row 4 -->
+                <button class="calc-btn text-gray-700 bg-white shadow-sm hover:bg-gray-50" data-val="1">1</button>
+                <button class="calc-btn text-gray-700 bg-white shadow-sm hover:bg-gray-50" data-val="2">2</button>
+                <button class="calc-btn text-gray-700 bg-white shadow-sm hover:bg-gray-50" data-val="3">3</button>
+                <button class="calc-btn text-indigo-500 bg-indigo-50 hover:bg-indigo-100 font-medium" data-val="+">+</button>
+                
+                <!-- Row 5 -->
+                <button class="calc-btn col-span-2 text-gray-700 bg-white shadow-sm hover:bg-gray-50 rounded-full" data-val="0">0</button>
+                <button class="calc-btn text-gray-700 bg-white shadow-sm hover:bg-gray-50" data-val=".">.</button>
+                <button class="calc-btn text-white bg-indigo-500 hover:bg-indigo-600 font-medium" data-val="=">=</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VAULT MODE: HERLOCK -->
+    <div id="vault-mode" class="hidden h-full flex flex-col text-gray-200 relative z-20">
+        <!-- Top Nav -->
+        <header class="bg-vault-800 border-b border-vault-700 p-4 flex justify-between items-center shadow-md">
+            <div class="flex items-center space-x-3">
+                <div class="bg-vault-accent p-2 rounded-lg">
+                    <i class="fa-solid fa-shield-halved text-white"></i>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight text-white">HerLock</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="settings-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+                <button id="lock-btn" class="flex items-center space-x-2 bg-vault-700 hover:bg-vault-600 text-white px-3 py-1.5 rounded-md transition-colors text-sm font-medium">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>Lock</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-8">
+            <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left Column: Voice Capture -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-vault-800 rounded-xl p-6 border border-vault-700 shadow-lg">
+                        <h2 class="text-lg font-semibold text-white mb-4 flex items-center">
+                            <i class="fa-solid fa-microphone mr-2 text-vault-accent"></i> Audio Capture
+                        </h2>
+                        
+                        <div class="flex justify-center my-8 relative">
+                            <div id="mic-pulse" class="absolute inset-0 bg-vault-danger rounded-full opacity-0 scale-50"></div>
+                            <button id="record-btn" class="relative z-10 w-24 h-24 rounded-full bg-vault-700 border-4 border-vault-800 flex items-center justify-center text-3xl shadow-xl hover:bg-vault-600 transition-all duration-300">
+                                <i id="record-icon" class="fa-solid fa-microphone text-gray-300"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="text-center mb-6">
+                            <p id="record-status" class="text-gray-400 font-medium">Ready to record</p>
+                        </div>
+
+                        <div class="bg-vault-900 rounded-lg p-4 min-h-[120px] border border-vault-700 relative">
+                            <span class="text-xs text-gray-500 absolute top-2 right-3">Live Transcript</span>
+                            <p id="transcript-display" class="text-sm text-gray-300 mt-2 italic break-words"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Evidence Log -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-vault-800 rounded-xl p-6 border border-vault-700 shadow-lg flex flex-col h-full">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-lg font-semibold text-white flex items-center">
+                                <i class="fa-solid fa-file-shield mr-2 text-vault-accent"></i> Evidence Log
+                            </h2>
+                            <button id="export-pdf-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center">
+                                <i class="fa-solid fa-file-pdf mr-2"></i> Export PDF
+                            </button>
+                        </div>
+
+                        <!-- Table Container for PDF -->
+                        <div id="pdf-container" class="flex-1 overflow-x-auto bg-vault-900 rounded-lg border border-vault-700 p-2">
+                            <!-- Hidden Header for PDF only -->
+                            <div id="pdf-header" class="hidden p-4 border-b border-gray-700 mb-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="bg-indigo-500 p-2 rounded-lg">
+                                            <i class="fa-solid fa-shield-halved text-white"></i>
+                                        </div>
+                                        <h1 class="text-2xl font-bold text-white">HerLock</h1>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-xs text-gray-400">Generated: <span id="pdf-timestamp"></span></p>
+                                        <p class="text-xs text-red-400 font-semibold uppercase tracking-wider mt-1">Confidential Evidence Report</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <table class="w-full text-left border-collapse min-w-[700px]">
+                                <thead>
+                                    <tr class="bg-vault-800 text-gray-400 text-xs uppercase tracking-wider border-b border-vault-700">
+                                        <th class="p-3 font-medium rounded-tl-lg">Date & Time</th>
+                                        <th class="p-3 font-medium">AI Analysis</th>
+                                        <th class="p-3 font-medium">Risk Level</th>
+                                        <th class="p-3 font-medium text-center pdf-exclude rounded-tr-lg">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="evidence-table-body" class="text-sm divide-y divide-vault-700">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                            
+                            <div id="empty-state" class="py-12 text-center text-gray-500 hidden">
+                                <i class="fa-solid fa-inbox text-4xl mb-3 opacity-50"></i>
+                                <p>No evidence logs recorded yet.</p>
+                            </div>
+                            
+                            <!-- Hidden Footer for PDF only -->
+                            <div id="pdf-footer" class="hidden p-4 border-t border-gray-700 mt-4 text-center">
+                                <p class="text-xs text-gray-500 italic">This report was automatically generated and categorized by an AI threat analysis system.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Modal (Groq API Key) -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center">
+        <div class="bg-vault-800 rounded-xl shadow-2xl w-full max-w-md p-6 border border-vault-700 transform transition-all">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-bold text-white">Configuration</h3>
+                <button id="close-settings" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="groq-key" class="block text-sm font-medium text-gray-300 mb-1">Groq API Key</label>
+                    <input type="password" id="groq-key" class="w-full bg-vault-900 border border-vault-600 rounded-md px-3 py-2 text-white focus:outline-none focus:border-vault-accent focus:ring-1 focus:ring-vault-accent" placeholder="gsk_...">
+                    <p class="text-xs text-gray-500 mt-1">Required for AI threat classification. Stored locally.</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+                <button id="save-settings" class="bg-vault-accent hover:bg-indigo-500 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

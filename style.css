@@ -1,0 +1,58 @@
+/* Custom styles beyond Tailwind */
+
+/* Hide scrollbar for a cleaner look */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Calculator Grid */
+.calc-btn {
+    @apply h-14 rounded-full text-xl font-medium flex items-center justify-center transition-all duration-200 active:scale-95;
+}
+
+/* Mic Recording Pulse Animation */
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    80%, 100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.recording-pulse {
+    animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    opacity: 1 !important;
+}
+
+.recording-active {
+    @apply bg-vault-danger border-red-900 shadow-[0_0_20px_rgba(239,68,68,0.4)];
+}
+
+.recording-active i {
+    @apply text-white;
+}
+
+/* PDF Export Specific Adjustments */
+/* When exporting PDF, we temporarily apply a class to adjust styles for the canvas */
+.pdf-export-mode {
+    background-color: #0f172a !important; /* Force dark background */
+    color: white !important;
+}
+
+.pdf-exclude {
+    display: none !important;
+}
