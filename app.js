@@ -27,6 +27,7 @@ const micPulse = document.getElementById('mic-pulse');
 const evidenceTableBody = document.getElementById('evidence-table-body');
 const emptyState = document.getElementById('empty-state');
 const exportPdfBtn = document.getElementById('export-pdf-btn');
+const shareBtn = document.getElementById('share-btn');
 
 // State
 let currentCalcInput = '';
@@ -201,9 +202,12 @@ function stopRecording() {
 
 // --- AI INTEGRATION LOGIC ---
 async function processAudioText(text) {
-    if (!text || text.trim() === '') {
-        recordStatus.textContent = "No speech detected. Try again.";
-        return;
+    let textToAnalyze = text;
+    if (!textToAnalyze || textToAnalyze.trim() === '') {
+        textToAnalyze = "DEMO: He threatened to hit me if I talk to my mother again.";
+        recordStatus.textContent = "Using demo transcript for analysis...";
+    } else {
+        recordStatus.textContent = "Analyzing threat level...";
     }
 
     const apiKey = localStorage.getItem('groqApiKey');
@@ -213,7 +217,6 @@ async function processAudioText(text) {
         return;
     }
 
-    recordStatus.textContent = "Analyzing threat level...";
     transcriptDisplay.innerHTML = `<span class="text-vault-accent"><i class="fa-solid fa-spinner fa-spin mr-2"></i>AI is processing evidence...</span>`;
 
     const systemPrompt = `You are an AI assistant for a secure evidence locker app for women in unsafe environments. 
@@ -221,10 +224,10 @@ Your task is to analyze the user's spoken text and classify the threat.
 You MUST respond with a valid JSON object only, with no markdown formatting or other text.
 Format:
 {
-  "threat_type": "Brief description of the threat (e.g., Domestic Violence, Stalking, Verbal Abuse)",
-  "urgency_score": <integer from 1-5, where 5 is immediate physical danger>,
-  "redacted_summary": "A concise summary of the incident with sensitive PII (names, exact locations) replaced with [REDACTED]",
-  "tags": ["tag1", "tag2"]
+  "threat_type": "physical | emotional | financial | digital | isolation | other",
+  "urgency_score": 1-5,
+  "redacted_summary": "Reword to exclude names/locations while keeping threat.",
+  "tags": ["hit", "break", "phone", "restrict"]
 }`;
 
     try {
@@ -238,7 +241,7 @@ Format:
                 model: "llama3-8b-8192",
                 messages: [
                     { role: "system", content: systemPrompt },
-                    { role: "user", content: `Analyze this transcript: "${text}"` }
+                    { role: "user", content: `Analyze this transcript: "${textToAnalyze}"` }
                 ],
                 temperature: 0.1,
                 response_format: { type: "json_object" }
@@ -258,16 +261,16 @@ Format:
             throw new Error("Invalid AI response format");
         }
 
-        saveEvidence(text, aiResult);
+        saveEvidence(textToAnalyze, aiResult);
         recordStatus.textContent = "Analysis complete. Evidence saved.";
-        transcriptDisplay.innerHTML = `<strong>Final Transcript:</strong><br>${text}`;
+        transcriptDisplay.innerHTML = `<strong>Final Transcript:</strong><br>${textToAnalyze}`;
         
     } catch (error) {
         console.error("AI Analysis Error:", error);
         recordStatus.textContent = "Analysis failed. Saved raw transcript.";
         
         // Fallback save if AI fails
-        saveEvidence(text, {
+        saveEvidence(textToAnalyze, {
             threat_type: "Unclassified (Error)",
             urgency_score: 0,
             redacted_summary: "AI classification failed. Raw transcript saved.",
@@ -296,6 +299,21 @@ function saveEvidence(originalText, aiResult) {
     localStorage.setItem('herlock_evidence', JSON.stringify(logs));
     
     renderEvidence(logs);
+}
+
+// --- OPTIONAL MONGODB CLOUD SYNC ---
+// Save an evidence entry to MongoDB Atlas (requires backend/serverless function)
+async function saveToCloud(evidenceObj) {
+    try {
+        const response = await fetch('/api/save-evidence', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(evidenceObj)
+        });
+        return await response.json();
+    } catch (e) {
+        console.log("Cloud sync disabled/failed in demo mode.");
+    }
 }
 
 function deleteEvidence(id) {
@@ -392,6 +410,9 @@ exportPdfBtn.addEventListener('click', async () => {
         // Exclude action column
         document.querySelectorAll('.pdf-exclude').forEach(el => el.style.display = 'none');
 
+        // Wait for elements to be ready (hackathon pro-tip for blank canvases)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         const canvas = await html2canvas(pdfContainer, {
             scale: 2,
             backgroundColor: '#0f172a',
@@ -425,3 +446,18 @@ exportPdfBtn.addEventListener('click', async () => {
         exportPdfBtn.disabled = false;
     }
 });
+
+// --- SHARING LOGIC ---
+if (shareBtn) {
+    shareBtn.addEventListener('click', () => {
+        const logs = JSON.parse(localStorage.getItem('herlock_evidence') || '[]');
+        if (logs.length === 0) {
+            alert("No evidence to share.");
+            return;
+        }
+        
+        // Use the hackathon shortcut provided
+        const message = encodeURIComponent("URGENT: Check my safety app evidence. I have securely logged " + logs.length + " incidents.");
+        window.open(`https://wa.me/?text=${message}`, '_blank');
+    });
+}
