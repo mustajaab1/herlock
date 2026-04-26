@@ -504,7 +504,7 @@ async function getLiveLocation() {
                 }
                 resolve("https://www.google.com/maps?q=0,0 (Location failed)");
             },
-            { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
         );
     });
 }
