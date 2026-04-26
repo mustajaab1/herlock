@@ -100,6 +100,10 @@
                 <h1 class="text-xl font-bold tracking-tight text-white">HerLock</h1>
             </div>
             <div class="flex items-center space-x-4">
+                <button id="panic-btn" class="bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded-md transition-all shadow-[0_0_15px_rgba(220,38,38,0.5)] font-bold animate-pulse flex items-center space-x-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="panic-text">PANIC</span>
+                </button>
                 <button id="settings-btn" class="text-gray-400 hover:text-white transition-colors">
                     <i class="fa-solid fa-gear"></i>
                 </button>
@@ -219,6 +223,11 @@
                     <label for="groq-key" class="block text-sm font-medium text-gray-300 mb-1">Groq API Key</label>
                     <input type="password" id="groq-key" class="w-full bg-vault-900 border border-vault-600 rounded-md px-3 py-2 text-white focus:outline-none focus:border-vault-accent focus:ring-1 focus:ring-vault-accent" placeholder="gsk_...">
                     <p class="text-xs text-gray-500 mt-1">Required for AI threat classification. Stored locally.</p>
+                </div>
+                <div>
+                    <label for="emergency-contacts" class="block text-sm font-medium text-gray-300 mb-1">Emergency Contact (WhatsApp)</label>
+                    <input type="text" id="emergency-contacts" class="w-full bg-vault-900 border border-vault-600 rounded-md px-3 py-2 text-white focus:outline-none focus:border-vault-accent focus:ring-1 focus:ring-vault-accent" placeholder="e.g. 15551234567">
+                    <p class="text-xs text-gray-500 mt-1">Include country code without '+'. Ex: 1 for US, 44 for UK.</p>
                 </div>
             </div>
             

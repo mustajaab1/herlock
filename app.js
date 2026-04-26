@@ -15,6 +15,7 @@ const settingsModal = document.getElementById('settings-modal');
 const closeSettingsBtn = document.getElementById('close-settings');
 const saveSettingsBtn = document.getElementById('save-settings');
 const groqKeyInput = document.getElementById('groq-key');
+const emergencyContactsInput = document.getElementById('emergency-contacts');
 
 // DOM Elements - Voice Capture
 const recordBtn = document.getElementById('record-btn');
@@ -28,6 +29,8 @@ const evidenceTableBody = document.getElementById('evidence-table-body');
 const emptyState = document.getElementById('empty-state');
 const exportPdfBtn = document.getElementById('export-pdf-btn');
 const shareBtn = document.getElementById('share-btn');
+const panicBtn = document.getElementById('panic-btn');
+const panicText = document.getElementById('panic-text');
 
 // State
 let currentCalcInput = '';
@@ -102,6 +105,10 @@ function loadSettings() {
     if (key) {
         groqKeyInput.value = key;
     }
+    const contact = localStorage.getItem('emergency_contact');
+    if (contact) {
+        emergencyContactsInput.value = contact;
+    }
 }
 
 settingsBtn.addEventListener('click', () => {
@@ -119,6 +126,14 @@ saveSettingsBtn.addEventListener('click', () => {
     } else {
         localStorage.removeItem('groqApiKey');
     }
+    
+    const contact = emergencyContactsInput.value.trim();
+    if (contact) {
+        localStorage.setItem('emergency_contact', contact);
+    } else {
+        localStorage.removeItem('emergency_contact');
+    }
+    
     settingsModal.classList.add('hidden');
 });
 
@@ -460,4 +475,146 @@ if (shareBtn) {
         const message = encodeURIComponent("URGENT: Check my safety app evidence. I have securely logged " + logs.length + " incidents.");
         window.open(`https://wa.me/?text=${message}`, '_blank');
     });
+}
+
+// --- PANIC BUTTON INTEGRATION ---
+
+/**
+ * Gets the user's live location via Geolocation API
+ * @returns {Promise<string>} Google Maps link
+ */
+async function getLiveLocation() {
+    return new Promise((resolve) => {
+        if (!navigator.geolocation) {
+            resolve("https://www.google.com/maps?q=0,0 (Location not supported)");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                resolve(`https://www.google.com/maps?q=${latitude},${longitude}`);
+            },
+            (error) => {
+                console.warn("Location error:", error.message, "Code:", error.code);
+                if (error.code === 1) { // PERMISSION_DENIED
+                    alert("⚠️ Location access denied! Please click the icon in your URL bar and click 'Allow'. If you are on Windows, ensure Windows 'Location privacy settings' are turned ON.");
+                } else if (error.code === 3) { // TIMEOUT
+                    alert("⚠️ Location request timed out. Using fallback.");
+                }
+                resolve("https://www.google.com/maps?q=0,0 (Location failed)");
+            },
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+        );
+    });
+}
+
+/**
+ * Generates a formatted emergency message
+ * @param {Object} logData - Evidence log object
+ * @param {string} locationLink - Google Maps URL
+ * @returns {string} Formatted message
+ */
+function generateEmergencyMessage(logData, locationLink) {
+    const timestamp = logData.timestamp ? new Date(logData.timestamp).toLocaleString() : new Date().toLocaleString();
+    
+    return `🚨 EMERGENCY ALERT: I need help. 🚨
+
+Threat Type: ${logData.threat_type || 'Unknown'}
+Urgency: ${logData.urgency_score || 5}/5
+
+Summary:
+${logData.redacted_summary || 'No summary available.'}
+
+📍 Location:
+${locationLink}
+
+🕒 Time:
+${timestamp}
+
+📄 Generated via HerLock Safety System`;
+}
+
+/**
+ * Triggers WhatsApp with the encoded message
+ * @param {string} message - Formatted message
+ */
+function sendWhatsAppAlert(message) {
+    const encodedMessage = encodeURIComponent(message);
+    const rawContacts = localStorage.getItem('emergency_contact') || '';
+    
+    let targetPhone = '';
+    if (rawContacts) {
+        // Take the first comma-separated contact and strip non-digits (like +, -, spaces)
+        const firstContact = rawContacts.split(',')[0].replace(/\D/g, ''); 
+        if (firstContact) {
+            targetPhone = firstContact;
+        }
+    }
+    
+    const waLink = `https://wa.me/${targetPhone}?text=${encodedMessage}`;
+    window.open(waLink, '_blank');
+}
+
+/**
+ * Main panic flow handler
+ */
+async function handlePanic() {
+    if (!panicBtn) return;
+    
+    const originalText = panicText.textContent;
+    panicText.textContent = "Loading...";
+    panicBtn.classList.remove('animate-pulse');
+    panicBtn.classList.add('opacity-75', 'cursor-not-allowed');
+    panicBtn.disabled = true;
+
+    try {
+        // 1. Get latest log data
+        const logs = JSON.parse(localStorage.getItem('herlock_evidence') || '[]');
+        let latestLog = logs.length > 0 ? logs[0].aiResult : null;
+        
+        if (logs.length > 0 && logs[0].timestamp) {
+            latestLog.timestamp = logs[0].timestamp;
+        }
+
+        // Fallback demo log if no data
+        if (!latestLog) {
+            latestLog = {
+                threat_type: "Physical Threat (Demo)",
+                urgency_score: 5,
+                redacted_summary: "User activated panic button but no prior evidence logs exist.",
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        // 2. Get Live Location
+        const locationLink = await getLiveLocation();
+
+        // 3. Generate Message
+        const emergencyMessage = generateEmergencyMessage(latestLog, locationLink);
+
+        // 4. Copy to clipboard (fallback)
+        try {
+            await navigator.clipboard.writeText(emergencyMessage);
+        } catch (clipboardErr) {
+            console.warn("Clipboard write failed:", clipboardErr);
+        }
+
+        // 5. Send WhatsApp Alert
+        sendWhatsAppAlert(emergencyMessage);
+
+    } catch (error) {
+        console.error("Panic sequence failed:", error);
+        alert("Emergency alert failed to send. Please dial emergency services directly.");
+    } finally {
+        // Restore button state
+        panicText.textContent = originalText;
+        panicBtn.classList.add('animate-pulse');
+        panicBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+        panicBtn.disabled = false;
+    }
+}
+
+if (panicBtn) {
+    panicBtn.addEventListener('click', handlePanic);
 }
