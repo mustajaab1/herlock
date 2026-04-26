@@ -518,7 +518,7 @@ async function getLiveLocation() {
 function generateEmergencyMessage(logData, locationLink) {
     const timestamp = logData.timestamp ? new Date(logData.timestamp).toLocaleString() : new Date().toLocaleString();
     
-    return `🚨 EMERGENCY ALERT: I need help. 🚨
+    return `\uD83D\uDEA8 EMERGENCY ALERT: I need help. \uD83D\uDEA8
 
 Threat Type: ${logData.threat_type || 'Unknown'}
 Urgency: ${logData.urgency_score || 5}/5
@@ -526,13 +526,13 @@ Urgency: ${logData.urgency_score || 5}/5
 Summary:
 ${logData.redacted_summary || 'No summary available.'}
 
-📍 Location:
+\uD83D\uDCCD Location:
 ${locationLink}
 
-🕒 Time:
+\uD83D\uDD52 Time:
 ${timestamp}
 
-📄 Generated via HerLock Safety System`;
+\uD83D\uDCC4 Generated via HerLock Safety System`;
 }
 
 /**
