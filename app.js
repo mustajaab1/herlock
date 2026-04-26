@@ -1,3 +1,6 @@
+// --- HACKATHON CONFIG ---
+const DEFAULT_GROQ_API_KEY = ""; // <-- PASTE YOUR GROQ API KEY HERE inside the quotes!
+
 // DOM Elements - Disguise Mode
 const disguiseMode = document.getElementById('disguise-mode');
 const calcDisplay = document.getElementById('calc-display');
@@ -225,9 +228,9 @@ async function processAudioText(text) {
         recordStatus.textContent = "Analyzing threat level...";
     }
 
-    const apiKey = localStorage.getItem('groqApiKey');
+    const apiKey = DEFAULT_GROQ_API_KEY || localStorage.getItem('groqApiKey');
     if (!apiKey) {
-        alert("Please set your Groq API Key in Settings first.");
+        alert("Please set your Groq API Key in Settings first (or hardcode it in app.js).");
         settingsModal.classList.remove('hidden');
         return;
     }
