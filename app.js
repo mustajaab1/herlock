@@ -1,5 +1,5 @@
 // --- HACKATHON CONFIG ---
-const DEFAULT_GROQ_API_KEY = ""; // <-- PASTE YOUR GROQ API KEY HERE inside the quotes!
+const DEFAULT_GROQ_API_KEY = "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"; // <-- PASTE YOUR GROQ API KEY HERE inside the quotes!
 
 // DOM Elements - Disguise Mode
 const disguiseMode = document.getElementById('disguise-mode');
